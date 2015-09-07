@@ -15,6 +15,14 @@ extern "C" {
 JNIEXPORT jintArray JNICALL Java_com_yunos_assistant_ui_card_ImageUtilEngine_stackBlur
   (JNIEnv *, jobject, jintArray, jint, jint, jint, jint);
 
+/*
+ * Class:     com_yunos_assistant_ui_card_ImageUtilEngine
+ * Method:    isBlackBackground
+ * Signature: ([III)I
+ */
+JNIEXPORT jint JNICALL Java_com_yunos_assistant_ui_card_ImageUtilEngine_isBlackBackground
+  (JNIEnv *, jobject, jintArray, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif
