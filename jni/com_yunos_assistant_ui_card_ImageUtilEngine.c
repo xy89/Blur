@@ -240,6 +240,8 @@ jintArray Java_com_yunos_assistant_ui_card_ImageUtilEngine_stackBlur(
 	_stackBlurH(cbuf, rbuf, height, width, radius);
 	_stackBlurV(rbuf, cbuf, height, width, radius);
 
+	(*env)->ReleaseIntArrayElements(env, buf, cbuf, 0);
+
 	free(rbuf);
 
 	finish = clock();
@@ -249,7 +251,8 @@ jintArray Java_com_yunos_assistant_ui_card_ImageUtilEngine_stackBlur(
 	return buf;
 }
 
-int Java_com_yunos_assistant_ui_card_ImageUtilEngine_isBlackBackground(JNIEnv* env, jobject thiz, jintArray buf, jint width, jint height) {
+int Java_com_yunos_assistant_ui_card_ImageUtilEngine_isBlackBackground(
+		JNIEnv* env, jobject thiz, jintArray buf, jint width, jint height) {
 
 	clock_t start, finish, middle;
 	start = clock();
@@ -257,144 +260,146 @@ int Java_com_yunos_assistant_ui_card_ImageUtilEngine_isBlackBackground(JNIEnv* e
 	jint * src;
 	src = (*env)->GetIntArrayElements(env, buf, 0);
 
-    int count = 400;
-    int* array = (int *) malloc(count * sizeof(int));
+	int count = 600;
+	jint* array = (jint *) malloc(count * sizeof(jint));
 
-    //sample only on horizon
-    int left = ceil(width * 0.1);
-    int right = floor(width * 0.9);
-    int top = ceil(height * 0.15);
-    int top2 = ceil(height * 0.25);
-    int bottom = floor(height * 0.85);
-    int bottom2 = floor(height * 0.75);
-    int sampleWidth = right - left;
-    LOGE("sampleWidth=  %d ", sampleWidth);
-    int horizonStep = (sampleWidth * 4) / count;
+	//sample only on horizon
+	int left = ceil(width * 0.1);
+	int right = floor(width * 0.9);
+	int top = ceil(height * 0.15);
+	int top2 = ceil(height * 0.25);
+	int bottom = floor(height * 0.91);
+	int bottom2 = floor(height * 0.93);
+	int sampleWidth = right - left;
+	LOGE("sampleWidth=  %d ", sampleWidth);
 
-    int i = 0;
-    int step;
-    int leftTopPointIndex = left + top * width;
-    LOGE("leftTopPointIndex=  %d ", leftTopPointIndex);
-    LOGE("horizonStep=  %d ", horizonStep);
-    for(step = 0; step < sampleWidth && i < count; i++) {
-    	array[i] = src[leftTopPointIndex + step];
-    	step += horizonStep;
-    }
+	int horizonStepTop = sampleWidth / 100;
+	int horizonStepBottom = sampleWidth / 200;
 
-    LOGE("i =  %d ", i);
+	LOGE("horizonStepTop=  %d ", horizonStepTop);
+	LOGE("horizonStepBottom=  %d ", horizonStepBottom);
 
-    int leftTop2PointIndex = left + top2 * width;
-    for(step = 0; step < sampleWidth && i < count; i++) {
-    	array[i] = src[leftTopPointIndex + step];
-    	step += horizonStep;
-    }
+	int i = 0;
+	int step;
+	int leftTopPointIndex = left + top * width;
+	LOGE("leftTopPointIndex=  %d ", leftTopPointIndex);
+	for (step = 0; step < sampleWidth && i < count; i++) {
+		array[i] = src[leftTopPointIndex + step];
+		step += horizonStepTop;
+	}
 
-    LOGE("i =  %d ", i);
+	LOGE("i =  %d ", i);
 
-    int leftBottomPointIndex = left + bottom * width;
-    for(step = 0; step < sampleWidth && i < count; i++) {
-       	array[i] = src[leftBottomPointIndex + step];
-       	step += horizonStep;
-       }
+	int leftTop2PointIndex = left + top2 * width;
+	for (step = 0; step < sampleWidth && i < count; i++) {
+		array[i] = src[leftTopPointIndex + step];
+		step += horizonStepTop;
+	}
 
-    LOGE("i =  %d ", i);
+	LOGE("i =  %d ", i);
 
-    int leftBottom2PointIndex = left + bottom2 * width;
-    for(step = 0; step < sampleWidth && i < count; i++) {
-       	array[i] = src[leftBottomPointIndex + step];
-       	step += horizonStep;
-       }
+	int leftBottomPointIndex = left + bottom * width;
+	for (step = 0; step < sampleWidth && i < count; i++) {
+		array[i] = src[leftBottomPointIndex + step];
+		step += horizonStepBottom;
+	}
 
-    LOGE("i =  %d ", i);
+	LOGE("i =  %d ", i);
 
+	int leftBottom2PointIndex = left + bottom2 * width;
+	for (step = 0; step < sampleWidth && i < count; i++) {
+		array[i] = src[leftBottomPointIndex + step];
+		step += horizonStepBottom;
+	}
 
-    /* sample on a rectangle
-     *
-    int left = ceil(width * 0.2);
-    int right = floor(width * 0.8);
-    int top = ceil(height * 0.2);
-    int bottom = floor(height * 0.8);
-    int sampleWidth = right - left;
-    int sampleHeight = bottom - top;
+	LOGE("i =  %d ", i);
 
-    int horizonCount = count * ((float)sampleWidth / (sampleWidth + sampleHeight));
-    int verticalCount = count - horizonCount;
+	/* sample on a rectangle
+	 *
+	 int left = ceil(width * 0.2);
+	 int right = floor(width * 0.8);
+	 int top = ceil(height * 0.2);
+	 int bottom = floor(height * 0.8);
+	 int sampleWidth = right - left;
+	 int sampleHeight = bottom - top;
 
-    int horizonStep = (sampleWidth * 2) / horizonCount;
-    int vertiacalStep = (sampleHeight * 2) / verticalCount;
+	 int horizonCount = count * ((float)sampleWidth / (sampleWidth + sampleHeight));
+	 int verticalCount = count - horizonCount;
 
-    int leftTopPointIndex = left + top * width;
-    int i = 0;
-    int step;
-    LOGE("sampleWidth=  %d ", sampleWidth);
-    LOGE("leftTopPointIndex=  %d ", leftTopPointIndex);
-    LOGE("horizonStep=  %d ", horizonStep);
-    for(step = 0; step < sampleWidth && i < count; i++) {
-    	array[i] = src[leftTopPointIndex + step];
-    	step += horizonStep;
-    }
+	 int horizonStep = (sampleWidth * 2) / horizonCount;
+	 int vertiacalStep = (sampleHeight * 2) / verticalCount;
 
-    LOGE("i =  %d ", i);
+	 int leftTopPointIndex = left + top * width;
+	 int i = 0;
+	 int step;
+	 LOGE("sampleWidth=  %d ", sampleWidth);
+	 LOGE("leftTopPointIndex=  %d ", leftTopPointIndex);
+	 LOGE("horizonStep=  %d ", horizonStep);
+	 for(step = 0; step < sampleWidth && i < count; i++) {
+	 array[i] = src[leftTopPointIndex + step];
+	 step += horizonStep;
+	 }
 
-    int leftBottomPointIndex = left + bottom * width;
-    for(step = 0; step < sampleWidth && i < count; i++) {
-       	array[i] = src[leftBottomPointIndex + step];
-       	step += horizonStep;
-       }
+	 LOGE("i =  %d ", i);
 
-    LOGE("i =  %d ", i);
+	 int leftBottomPointIndex = left + bottom * width;
+	 for(step = 0; step < sampleWidth && i < count; i++) {
+	 array[i] = src[leftBottomPointIndex + step];
+	 step += horizonStep;
+	 }
 
-    for(step = vertiacalStep; step < sampleHeight && i < count; i++) {
-       	array[i] = src[leftTopPointIndex + step * width];
-       	step += vertiacalStep;
-       }
+	 LOGE("i =  %d ", i);
 
-    LOGE("i =  %d ", i);
+	 for(step = vertiacalStep; step < sampleHeight && i < count; i++) {
+	 array[i] = src[leftTopPointIndex + step * width];
+	 step += vertiacalStep;
+	 }
 
-    int rightTopPointIndex = (width - left) + top * width;
-    for(step = 0; step <= sampleHeight && i < count; i++) {
-       	array[i] = src[rightTopPointIndex + step * width];
-       	step += vertiacalStep;
-       }
+	 LOGE("i =  %d ", i);
 
-    LOGE("i =  %d ", i);*/
+	 int rightTopPointIndex = (width - left) + top * width;
+	 for(step = 0; step <= sampleHeight && i < count; i++) {
+	 array[i] = src[rightTopPointIndex + step * width];
+	 step += vertiacalStep;
+	 }
 
-    middle = clock();
-    double duration2 = (double) (middle - start) / CLOCKS_PER_SEC;
-    LOGE("STACK middle TACKS %f sec", duration2);
+	 LOGE("i =  %d ", i);*/
 
+	middle = clock();
+	double duration2 = (double) (middle - start) / CLOCKS_PER_SEC;
+	LOGE("STACK middle TACKS %f sec", duration2);
 
-    int totalGrayPix = 0;
-    int j;
-    for(j = 0; j <= i; j++) {
-    	 int color = array[j];
-    	 int r = red(color);
-    	 int g = green(color);
-    	 int b = blue(color);
-    	 int tmpValue = (r * 19595 + g * 38469 + b * 7472) >> 16;
-    	 totalGrayPix += tmpValue;
-    }
+	int totalGrayPix = 0;
+	int j;
+	for (j = 0; j <= i; j++) {
+		int color = array[j];
+		int r = red(color);
+		int g = green(color);
+		int b = blue(color);
+		LOGE("r %d", r);
+		LOGE("g %d", g);
+		LOGE("b %d", b);
+		int tmpValue = (r * 19595 + g * 38469 + b * 7472) >> 16;
+		totalGrayPix += tmpValue;
+	}
 
-    free(array);
+	(*env)->ReleaseIntArrayElements(env, buf, src, 0);
 
-    int avgGray = totalGrayPix / (i + 1);
+	free(array);
+
+	int avgGray = totalGrayPix / (i + 1);
 
 	finish = clock();
 	double duration = (double) (finish - start) / CLOCKS_PER_SEC;
 	LOGE("STACK end TACKS %f sec", duration);
 
-
-    if (avgGray < 50)
-    {
-    	LOGE("so black");
-    	return 0;
-    }else {
-    	LOGE("so else");
-    	return -1;
-    }
+	LOGE("avgGray %d", avgGray);
+	if (avgGray < 10) {
+		LOGE("so black");
+		return 0;
+	} else {
+		LOGE("so else");
+		return -1;
+	}
 }
-
-
-
-
 
