@@ -86,9 +86,13 @@ void _stackBlurH(jint* src, jint* dst, int height, int width, int radius) {
 			curColor = src[curPixel];
 			pixA = alpha(curColor);
 
-			pixR = rSum >> 8;
-			pixG = gSum >> 8;
-			pixB = bSum >> 8;
+			//pixR = rSum >> 8;
+			//pixG = gSum >> 8;
+			//pixB = bSum >> 8;
+
+			pixR = rSum >> 10;
+			pixG = gSum >> 10;
+			pixB = bSum >> 10;
 
 			dst[curPixel] = ARGB(pixA, pixR, pixG, pixB);
 
@@ -171,9 +175,13 @@ void _stackBlurV(jint* src, jint* dst, int height, int width, int radius) {
 			curColor = src[curPixel];
 			pixA = alpha(curColor);
 
-			pixR = rSum >> 8;
-			pixG = gSum >> 8;
-			pixB = bSum >> 8;
+			//pixR = rSum >> 8;
+			//pixG = gSum >> 8;
+			//pixB = bSum >> 8;
+
+			pixR = rSum >> 10;
+			pixG = gSum >> 10;
+			pixB = bSum >> 10;
 
 			dst[curPixel] = ARGB(pixA, pixR, pixG, pixB);
 
@@ -236,7 +244,8 @@ jintArray Java_com_yunos_assistant_ui_card_ImageUtilEngine_stackBlur(
 	if (radius > width || radius > height)
 		LOGE("radius: %d is invalid in stack blur", radius);
 
-	radius = 15;
+	//radius = 15;
+	radius = 32;
 	_stackBlurH(cbuf, rbuf, height, width, radius);
 	_stackBlurV(rbuf, cbuf, height, width, radius);
 
@@ -376,9 +385,9 @@ int Java_com_yunos_assistant_ui_card_ImageUtilEngine_isBlackBackground(
 		int r = red(color);
 		int g = green(color);
 		int b = blue(color);
-		LOGE("r %d", r);
-		LOGE("g %d", g);
-		LOGE("b %d", b);
+		//LOGE("r %d", r);
+		//LOGE("g %d", g);
+		//LOGE("b %d", b);
 		int tmpValue = (r * 19595 + g * 38469 + b * 7472) >> 16;
 		totalGrayPix += tmpValue;
 	}
