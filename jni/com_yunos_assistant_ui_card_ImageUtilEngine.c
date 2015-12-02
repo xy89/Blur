@@ -48,7 +48,7 @@ int* clone(int* src, int* dst, int length) {
 	}
 }
 
-void _stackBlurH(jint* src, jint* dst, int height, int width, int radius) {
+void _stackBlurH(jint* src, jint* dst, int height, int width, int radius, int shift) {
 	int x, y, i, curPixel;
 	int pixA, pixR, pixG, pixB;
 	int preColor, curColor, nextColor;
@@ -86,13 +86,9 @@ void _stackBlurH(jint* src, jint* dst, int height, int width, int radius) {
 			curColor = src[curPixel];
 			pixA = alpha(curColor);
 
-			//pixR = rSum >> 8;
-			//pixG = gSum >> 8;
-			//pixB = bSum >> 8;
-
-			pixR = rSum >> 10;
-			pixG = gSum >> 10;
-			pixB = bSum >> 10;
+			pixR = rSum >> shift;
+			pixG = gSum >> shift;
+			pixB = bSum >> shift;
 
 			dst[curPixel] = ARGB(pixA, pixR, pixG, pixB);
 
@@ -136,7 +132,7 @@ void _stackBlurH(jint* src, jint* dst, int height, int width, int radius) {
 
 }
 
-void _stackBlurV(jint* src, jint* dst, int height, int width, int radius) {
+void _stackBlurV(jint* src, jint* dst, int height, int width, int radius, int shift) {
 	int x, y, i, curPixel;
 	int pixA, pixR, pixG, pixB;
 	int preColor, curColor, nextColor;
@@ -175,13 +171,10 @@ void _stackBlurV(jint* src, jint* dst, int height, int width, int radius) {
 			curColor = src[curPixel];
 			pixA = alpha(curColor);
 
-			//pixR = rSum >> 8;
-			//pixG = gSum >> 8;
-			//pixB = bSum >> 8;
+			pixR = rSum >> shift;
+			pixG = gSum >> shift;
+			pixB = bSum >> shift;
 
-			pixR = rSum >> 10;
-			pixG = gSum >> 10;
-			pixB = bSum >> 10;
 
 			dst[curPixel] = ARGB(pixA, pixR, pixG, pixB);
 
@@ -230,7 +223,7 @@ void _stackBlurV(jint* src, jint* dst, int height, int width, int radius) {
 
 jintArray Java_com_yunos_assistant_ui_card_ImageUtilEngine_stackBlur(
 		JNIEnv* env, jobject thiz, jintArray buf, jint width, jint height,
-		jint radius, jint iterations) {
+		jint radius, jint shift, jint iterations) {
 
 	clock_t start, finish;
 	start = clock();
@@ -244,10 +237,8 @@ jintArray Java_com_yunos_assistant_ui_card_ImageUtilEngine_stackBlur(
 	if (radius > width || radius > height)
 		LOGE("radius: %d is invalid in stack blur", radius);
 
-	//radius = 15;
-	radius = 32;
-	_stackBlurH(cbuf, rbuf, height, width, radius);
-	_stackBlurV(rbuf, cbuf, height, width, radius);
+	_stackBlurH(cbuf, rbuf, height, width, radius, shift);
+	_stackBlurV(rbuf, cbuf, height, width, radius, shift);
 
 	(*env)->ReleaseIntArrayElements(env, buf, cbuf, 0);
 
@@ -323,57 +314,6 @@ int Java_com_yunos_assistant_ui_card_ImageUtilEngine_isBlackBackground(
 
 	LOGE("i =  %d ", i);
 
-	/* sample on a rectangle
-	 *
-	 int left = ceil(width * 0.2);
-	 int right = floor(width * 0.8);
-	 int top = ceil(height * 0.2);
-	 int bottom = floor(height * 0.8);
-	 int sampleWidth = right - left;
-	 int sampleHeight = bottom - top;
-
-	 int horizonCount = count * ((float)sampleWidth / (sampleWidth + sampleHeight));
-	 int verticalCount = count - horizonCount;
-
-	 int horizonStep = (sampleWidth * 2) / horizonCount;
-	 int vertiacalStep = (sampleHeight * 2) / verticalCount;
-
-	 int leftTopPointIndex = left + top * width;
-	 int i = 0;
-	 int step;
-	 LOGE("sampleWidth=  %d ", sampleWidth);
-	 LOGE("leftTopPointIndex=  %d ", leftTopPointIndex);
-	 LOGE("horizonStep=  %d ", horizonStep);
-	 for(step = 0; step < sampleWidth && i < count; i++) {
-	 array[i] = src[leftTopPointIndex + step];
-	 step += horizonStep;
-	 }
-
-	 LOGE("i =  %d ", i);
-
-	 int leftBottomPointIndex = left + bottom * width;
-	 for(step = 0; step < sampleWidth && i < count; i++) {
-	 array[i] = src[leftBottomPointIndex + step];
-	 step += horizonStep;
-	 }
-
-	 LOGE("i =  %d ", i);
-
-	 for(step = vertiacalStep; step < sampleHeight && i < count; i++) {
-	 array[i] = src[leftTopPointIndex + step * width];
-	 step += vertiacalStep;
-	 }
-
-	 LOGE("i =  %d ", i);
-
-	 int rightTopPointIndex = (width - left) + top * width;
-	 for(step = 0; step <= sampleHeight && i < count; i++) {
-	 array[i] = src[rightTopPointIndex + step * width];
-	 step += vertiacalStep;
-	 }
-
-	 LOGE("i =  %d ", i);*/
-
 	middle = clock();
 	double duration2 = (double) (middle - start) / CLOCKS_PER_SEC;
 	LOGE("STACK middle TACKS %f sec", duration2);
@@ -385,9 +325,6 @@ int Java_com_yunos_assistant_ui_card_ImageUtilEngine_isBlackBackground(
 		int r = red(color);
 		int g = green(color);
 		int b = blue(color);
-		//LOGE("r %d", r);
-		//LOGE("g %d", g);
-		//LOGE("b %d", b);
 		int tmpValue = (r * 19595 + g * 38469 + b * 7472) >> 16;
 		totalGrayPix += tmpValue;
 	}

@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     com_yunos_assistant_ui_card_ImageUtilEngine
  * Method:    stackBlur
- * Signature: ([IIIII)[I
+ * Signature: ([IIIIII)[I
  */
 JNIEXPORT jintArray JNICALL Java_com_yunos_assistant_ui_card_ImageUtilEngine_stackBlur
-  (JNIEnv *, jobject, jintArray, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jintArray, jint, jint, jint, jint, jint);
 
 /*
  * Class:     com_yunos_assistant_ui_card_ImageUtilEngine

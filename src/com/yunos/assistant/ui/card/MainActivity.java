@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
         if(isBlack == 0) {
             Log.i("Filters", "black");
         }else {
-            int[] arrayOut = imageEngine.stackBlur(colorArray, scaleWidth, scaleHeight, 15, 0);
+            int[] arrayOut = imageEngine.stackBlur(colorArray, scaleWidth, scaleHeight, 15, 8, 0);
             img.setBackground(new BitmapDrawable(Bitmap.createBitmap(arrayOut, scaleWidth, scaleHeight, Bitmap.Config.ARGB_8888)));
         }        
     }
